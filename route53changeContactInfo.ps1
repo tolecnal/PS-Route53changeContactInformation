@@ -5,7 +5,25 @@
     .DESCRIPTION
     This script is used to change contact information for registered domains in AWS Route 53
     .EXAMPLE
-    .\route53changeContactInfo.ps1 -All|-Admin|-Registrant|-Tech
+    .\route53changeContactInfo.ps1 -All $true -Wait $true -DomainName example.com
+    .EXAMPLE
+    .\route53changeContactInfo.ps1 -Admin $true -Wait $false -DomainName example.com
+    .PARAMETER DomainName
+    The domain name to update
+    .PARAMETER AWSProfile
+    The AWS profile to use, as per ~/.aws/credentials
+    .PARAMETER Wait
+    Wait for updates to finish, i.e. output to stdout?
+    .PARAMETER All
+    Update all contact information? I.e: admin, registrant and tech
+    .PARAMETER Admin
+    Update admin contact information?
+    .PARAMETER Registrant
+    Update registrant contact information?
+    .PARAMETER Tech
+    Update tech contact information?
+    .PARAMETER WaitInterval
+    The interval used to check for updates from the API, in seconds
     .NOTES
     File Name  : route53changeContactInfo.ps1
     Author     : Jostein Elvaker Haande
@@ -47,7 +65,7 @@ Param
   [Parameter(Mandatory = $false, HelpMessage = "Update tech contact information?")]
   [boolean]$Tech = $false
   ,
-  [Parameter(Mandatory = $false, HelpMessage = "The interval used to check for updates, in seconds")]
+  [Parameter(Mandatory = $false, HelpMessage = "The interval used to check for updates from the API, in seconds")]
   [int]$WaitInterval = 30
 )
 #endregion PARAMETERS
