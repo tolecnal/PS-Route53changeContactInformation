@@ -26,23 +26,29 @@ Comment: first release
 Param
 (
   # Parameter help description
-  [Parameter(Mandatory = $true, HelpMessage = "Domain name to update")]
+  [Parameter(Mandatory = $true, HelpMessage = "Domain name to update, e.g. example.com")]
   [string]$DomainName
   ,
-  [Parameter(Mandatory = $true, HelpMessage = "AWS Profile to use")]
+  [Parameter(Mandatory = $true, HelpMessage = "AWS Profile to use, as per ~/.aws/credentials")]
   [string]$AWSProfile
   ,
-  [Parameter(Mandatory = $false, HelpMessage = "Update all contact information")]
+  [Parameter(Mandatory = $false, HelpMessage = "Wait for updates to finish, i.e. output to stdout?")]
+  [boolean]$Wait = $false
+  ,
+  [Parameter(Mandatory = $false, HelpMessage = "Update all contact information? I.e: admin, registrant and tech")]
   [boolean]$All = $false
   ,
-  [Parameter(Mandatory = $false, HelpMessage = "Update admin contact information")]
+  [Parameter(Mandatory = $false, HelpMessage = "Update admin contact information?")]
   [boolean]$Admin = $false
   ,
-  [Parameter(Mandatory = $false, HelpMessage = "Update registrant contact information")]
+  [Parameter(Mandatory = $false, HelpMessage = "Update registrant contact information?")]
   [boolean]$Registrant = $false
   ,
-  [Parameter(Mandatory = $false, HelpMessage = "User ID of the user to delete")]
+  [Parameter(Mandatory = $false, HelpMessage = "Update tech contact information?")]
   [boolean]$Tech = $false
+  ,
+  [Parameter(Mandatory = $false, HelpMessage = "The interval used to check for updates, in seconds")]
+  [int]$WaitInterval = 30
 )
 #endregion PARAMETERS
 
@@ -55,7 +61,6 @@ Import-Module AWS.Tools.Route53Domains
 #region script
 $ThisScript = $SCRIPT:MyInvocation.MyCommand
 $scriptFolder = $(Get-Item $ThisScript.Path).DirectoryName
-
 Start-Transcript -Append -Path $($scriptFolder + "/route53changeContactInfo.txt")
 
 try {
@@ -75,6 +80,11 @@ catch {
   throw $_.Exception.Message
 }
 
+if ($All -and -not $Wait) {
+  Write-Warning "Not waiting is not supported when updating all contact information"
+  Write-Warning "This due to the Route 53 API being rate limited for update requests"
+  Exit 1
+}
 
 # Update the admin contact information for the domain
 if ($All -or $Admin) {
@@ -90,14 +100,17 @@ if ($All -or $Admin) {
   }
 
   # Wait for the update to be successful
-  $tempStatus = Get-R53DOperationDetail -OperationId $res
-  while ($tempStatus.Status -ne "SUCCESSFUL") {
-    Start-Sleep -Seconds 15
+  $waitSequence = 1
+  if ($Wait) {
     $tempStatus = Get-R53DOperationDetail -OperationId $res
-    Write-Host "Status admin update: $($tempStatus.Status)"
+    while ($tempStatus.Status -ne "SUCCESSFUL") {
+      Start-Sleep -Seconds $WaitInterval
+      $tempStatus = Get-R53DOperationDetail -OperationId $res
+      Write-Host "Status admin update: $($tempStatus.Status) - Sequence: $waitSequence"
+      $waitSequence++
+    }
   }
 }
-
 
 # Update the registrant contact information for the domain
 if ($All -or $Registrant) {
@@ -113,11 +126,15 @@ if ($All -or $Registrant) {
   }
 
   # Wait for the update to be successful
-  $tempStatus = Get-R53DOperationDetail -OperationId $res
-  while ($tempStatus.Status -ne "SUCCESSFUL") {
-    Start-Sleep -Seconds 15
+  $waitSequence = 1
+  if ($Wait) {
     $tempStatus = Get-R53DOperationDetail -OperationId $res
-    Write-Host "Status registrant update: $($tempStatus.Status)"
+    while ($tempStatus.Status -ne "SUCCESSFUL") {
+      Start-Sleep -Seconds $WaitInterval
+      $tempStatus = Get-R53DOperationDetail -OperationId $res
+      Write-Host "Status admin update: $($tempStatus.Status) - Sequence: $waitSequence"
+      $waitSequence++
+    }
   }
 }
 
@@ -135,11 +152,15 @@ if ($All -or $Tech) {
   }
 
   # Wait for the update to be successful
-  $tempStatus = Get-R53DOperationDetail -OperationId $res
-  while ($tempStatus.Status -ne "SUCCESSFUL") {
-    Start-Sleep -Seconds 15
+  $waitSequence = 1
+  if ($Wait) {
     $tempStatus = Get-R53DOperationDetail -OperationId $res
-    Write-Host "Status tech update: $($tempStatus.Status)"
+    while ($tempStatus.Status -ne "SUCCESSFUL") {
+      Start-Sleep -Seconds $WaitInterval
+      $tempStatus = Get-R53DOperationDetail -OperationId $res
+      Write-Host "Status admin update: $($tempStatus.Status) - Sequence: $waitSequence"
+      $waitSequence++
+    }
   }
 }
 
