@@ -62,7 +62,7 @@ try {
   Set-AWSCredentials -ProfileName $AWSProfile
 }
 catch {
-  throw $_.Exception.Message<#Do this if a terminating exception happens#>
+  throw $_.Exception.Message
 }
 
 # Load configuration file if it exists
