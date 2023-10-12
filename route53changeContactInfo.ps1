@@ -104,8 +104,11 @@ if ($All -and -not $Wait) {
   Exit 1
 }
 
+Write-Host -ForegroundColor Green "Starting with updating contact information for domain $DomainName"
+
 # Update the admin contact information for the domain
 if ($All -or $Admin) {
+  Write-Output " "
   Write-Output "Updating admin contact information for domain $DomainName"
   try {
     $res = Update-R53DDomainContact -Domain $DomainName -AdminContact_AddressLine1 $adminContact_AddressLine1 `
@@ -120,6 +123,7 @@ if ($All -or $Admin) {
 
   # Wait for the update to be successful
   $waitSequence = 1
+  Write-Output "Operation ID in AWS: $res"
   if ($Wait) {
     $tempStatus = Get-R53DOperationDetail -OperationId $res
     while ($tempStatus.Status -ne "SUCCESSFUL") {
@@ -127,12 +131,19 @@ if ($All -or $Admin) {
       $tempStatus = Get-R53DOperationDetail -OperationId $res
       Write-Host "Status admin update: $($tempStatus.Status) - Sequence: $waitSequence"
       $waitSequence++
+
+      if ($tempStatus.StatusFlag) {
+        Write-Warning "Status flag: $($tempStatus.StatusFlag)"
+        Write-Warning "Manual intervention required, exiting"
+        Exit 1
+      }
     }
   }
 }
 
 # Update the registrant contact information for the domain
 if ($All -or $Registrant) {
+  Write-Output " "
   Write-Output "Updating registrant contact information for domain $DomainName"
   try {
     $res = Update-R53DDomainContact -Domain $DomainName -RegistrantContact_AddressLine1 $RegistrantContact_AddressLine1 `
@@ -147,19 +158,27 @@ if ($All -or $Registrant) {
 
   # Wait for the update to be successful
   $waitSequence = 1
+  Write-Output "Operation ID in AWS: $res"
   if ($Wait) {
     $tempStatus = Get-R53DOperationDetail -OperationId $res
     while ($tempStatus.Status -ne "SUCCESSFUL") {
       Start-Sleep -Seconds $WaitInterval
       $tempStatus = Get-R53DOperationDetail -OperationId $res
-      Write-Host "Status admin update: $($tempStatus.Status) - Sequence: $waitSequence"
+      Write-Host "Status registrant update: $($tempStatus.Status) - Sequence: $waitSequence"
       $waitSequence++
+
+      if ($tempStatus.StatusFlag) {
+        Write-Warning "Status flag: $($tempStatus.StatusFlag)"
+        Write-Warning "Manual intervention required, exiting"
+        Exit 1
+      }
     }
   }
 }
 
 # Update the tech contact information for the domain
 if ($All -or $Tech) {
+  Write-Output " "
   Write-Output "Updating tech contact information for domain $DomainName"
   try {
     $res = Update-R53DDomainContact -Domain $DomainName -TechContact_AddressLine1 $TechContact_AddressLine1 `
@@ -174,16 +193,25 @@ if ($All -or $Tech) {
 
   # Wait for the update to be successful
   $waitSequence = 1
+  Write-Output "Operation ID in AWS: $res"
   if ($Wait) {
     $tempStatus = Get-R53DOperationDetail -OperationId $res
     while ($tempStatus.Status -ne "SUCCESSFUL") {
       Start-Sleep -Seconds $WaitInterval
       $tempStatus = Get-R53DOperationDetail -OperationId $res
-      Write-Host "Status admin update: $($tempStatus.Status) - Sequence: $waitSequence"
+      Write-Host "Status tech update: $($tempStatus.Status) - Sequence: $waitSequence"
       $waitSequence++
+
+      if ($tempStatus.StatusFlag) {
+        Write-Warning "Status flag: $($tempStatus.StatusFlag)"
+        Write-Warning "Manual intervention required, exiting"
+        Exit 1
+      }
     }
   }
 }
 
+Write-Host " "
+Write-Host -ForegroundColor Green "Complete with updating contact information for domain $DomainName"
 Stop-Transcript
 #endregion script
