@@ -88,6 +88,7 @@ if ($All -and -not $Wait) {
 
 # Update the admin contact information for the domain
 if ($All -or $Admin) {
+  Write-Output "Updating admin contact information"
   try {
     $res = Update-R53DDomainContact -Domain $DomainName -AdminContact_AddressLine1 $adminContact_AddressLine1 `
       -AdminContact_City $adminContact_City -AdminContact_CountryCode $AdminContact_CountryCode `
@@ -114,6 +115,7 @@ if ($All -or $Admin) {
 
 # Update the registrant contact information for the domain
 if ($All -or $Registrant) {
+  Write-Output "Updating registrant contact information"
   try {
     $res = Update-R53DDomainContact -Domain $DomainName -RegistrantContact_AddressLine1 $RegistrantContact_AddressLine1 `
       -RegistrantContact_City $RegistrantContact_City -RegistrantContact_CountryCode $RegistrantContact_CountryCode `
@@ -140,6 +142,7 @@ if ($All -or $Registrant) {
 
 # Update the tech contact information for the domain
 if ($All -or $Tech) {
+  Write-Output "Updating tech contact information"
   try {
     $res = Update-R53DDomainContact -Domain $DomainName -TechContact_AddressLine1 $TechContact_AddressLine1 `
       -TechContact_City $TechContact_City -TechContact_CountryCode $TechContact_CountryCode `
