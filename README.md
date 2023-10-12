@@ -1,11 +1,10 @@
 # PS-Route53changeContactInformation
-PS-Route53changeContactInformation
 
 ## Introduction
 
 This PowerShell script enables you to change the contact information of a hosted zone in AWS Route 53.
 
-It relies on the following AWS modules:
+It relies on the following AWS PowerShell modules:
 - AWS.Tools.Common
 - AWS.Tools.Route53
 - AWS.Tools.Route53Domains
